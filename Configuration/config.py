@@ -9,9 +9,9 @@ load_dotenv()
 
 # Current Date and Time
 def date_time():
-    CURRENT_DATE = datetime.now().strftime('%Y-%m-%d')
-    CURRENT_TIME = datetime.now().strftime('%H:%M:%S')
-    return CURRENT_DATE, CURRENT_TIME
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    current_time = datetime.now().strftime('%H:%M:%S')
+    return current_date, current_time
 
 # Setting Up Logger instead of print()
 logging.basicConfig(level=logging.INFO,
@@ -41,3 +41,10 @@ def db_connection():
             
 # This varriable stores database connection            
 DB_CONNECTION = db_connection()
+
+
+JWT_SECRET = os.getenv("JWT_SECRET")
+ALGORITHM= "HS256"
+
+PROD_URL = "https://ourdomain.com"
+LOCAL_URL = "localhost:3000"

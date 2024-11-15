@@ -4,58 +4,30 @@ from Emails.MailLayouts import *
 from Configuration.config import *
 
 # This function is responsible for sending OTP to users via email
-def send_otp_by_mail(recipient:str, user_first_name:str, OTP:int):
+def account_verify_sender(user_email: str, first_name: str, token_url: str) -> bool:
+    """
+    This function sends account verification Email.
+    
+    Args
+    ----
+        >>>
+    user_email (str): Email of user.
+    first_name (str): First name of user.
+    token_url  (str): Token URL with JWT.
+    
+    Returns
+    -------
+        >>> 
+    bool: True if email sent successfully, False otherwise.
+    """
     try:
-        logging.info(f"Sending OTP via mail to {recipient}")
-        # Getting HTML layout for sending OTP
-        html_body = otp_mail_layout(user_first_name, OTP)
+        mail = SendEmailLayout
+        logging.info(f"Sending account verification email to : {user_email}")
+        # Getting HTML layout for sending email
+        html_body = mail.verify_account_layout(first_name, token_url)
         # Create MIMEText object with 'html' MIME type
         msg = MIMEText(html_body, 'html')
-        msg['Subject'] = f"OTP for registration"
-        msg['From'] = EMAIL_SENDER
-        msg['To'] = recipient
-        # Connecting with SMTP server
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
-            server.starttls()
-            server.login(EMAIL_SENDER, EMAIL_SENDER_PASSWORD)
-            server.sendmail(EMAIL_SENDER, recipient, msg.as_string())
-        return True
-    except Exception as error:
-        logging.error(f"ERROR OCCURED WHILE SENDING OTP TO {recipient} :" f"{error}")
-        return False
-    
-    
-# This function is responsible for sending a confirmation emails to users 
-def registration_success_mail(recipient:str, user_first_name:str):
-    try:
-        logging.info(f"Sending confirmation e-mail to {recipient}")
-        # Getting HTML layout for registration success
-        html_body = confirmation_mail_layout(user_first_name)
-        # Create MIMEText object with 'html' MIME type
-        msg = MIMEText(html_body, 'html')
-        msg['Subject'] = f"Registration successfull."
-        msg['From'] = EMAIL_SENDER
-        msg['To'] = recipient
-        # Connecting with SMTP server
-        with smtplib.SMTP('smtp.gmail.com', 587) as server:
-            server.starttls()
-            server.login(EMAIL_SENDER, EMAIL_SENDER_PASSWORD)
-            server.sendmail(EMAIL_SENDER, recipient, msg.as_string())
-        return True
-    except Exception as error:
-        logging.error(f"ERROR OCCURED WHILE SENDING CONFIRMATION TO {recipient} :" f"{error}")
-        return False    
-    
-    
-# This function is responsible for sending OTP to password change
-def forgot_password_otp_send(user_email:str, user_first_name:str, OTP:int):
-    try:
-        logging.info(f"Sending OTP via mail to {user_email}")
-        # Getting HTML layout for sending OTP
-        html_body = forgot_password_mail_layout(user_first_name, OTP)
-        # Create MIMEText object with 'html' MIME type
-        msg = MIMEText(html_body, 'html')
-        msg['Subject'] = f"OTP for changing password"
+        msg['Subject'] = f"Account verify"
         msg['From'] = EMAIL_SENDER
         msg['To'] = user_email
         # Connecting with SMTP server
@@ -63,7 +35,8 @@ def forgot_password_otp_send(user_email:str, user_first_name:str, OTP:int):
             server.starttls()
             server.login(EMAIL_SENDER, EMAIL_SENDER_PASSWORD)
             server.sendmail(EMAIL_SENDER, user_email, msg.as_string())
+            logging.info("Account verification email sent successfully.")
         return True
     except Exception as error:
-        logging.error(f"ERROR OCCURED WHILE SENDING OTP FOR CHANGING PASSWORD TO {user_email} :" f"{error}")
-        return False    
+        logging.error(f"ERROR OCCURED WHILE SENDING OTP TO {user_email} :" f"{error}")
+        return False
