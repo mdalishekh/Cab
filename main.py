@@ -42,7 +42,12 @@ def test_api():
 async def verify_signup_token(token: str):
     decoder = JwtDecoder
     status, result = decoder.decode_jwt(token)
+    try:
+        user_email = result.get("email")
+    except:
+        pass
     if status:
+        set_verify_true(user_email)
         return JSONResponse(result, status_code= 200)
     return JSONResponse({
             "result" : result

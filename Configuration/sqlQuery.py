@@ -49,3 +49,20 @@ def is_table_exist(table_name: str) -> bool:
     except Exception as error:
         logging.error(f"ERROR OCCURED WHILE CHECKING {table_name} EXISTANCE: " f"{error}")
         return False
+    
+    
+# This function is responsible for Verifying user in datable
+def set_verify_true(email: str) -> bool:
+    try:
+        query = f"""
+                Update user_credential
+                set verify = True where email = %s
+                """    
+        pg_cursor = DB_CONNECTION.cursor()
+        pg_cursor.execute(query, (email,))
+        DB_CONNECTION.commit()
+        pg_cursor.close()
+        return True
+    except Exception as error:
+        logging.error(error)  
+        return False  
