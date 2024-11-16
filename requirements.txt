@@ -6,3 +6,4 @@ starlette == 0.37.2
 apscheduler == 3.10.4
 pyjwt == 2.9.0
 jose == 1.0.0
+cryptography == 42.0.8

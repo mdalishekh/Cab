@@ -29,11 +29,16 @@ class DatabaseHandler:
             email = json_data.get("email")
             raw_password = json_data.get("password")
             # Encoding Password in JWT
-            encoder = JwtEncoder
-            encoded_password = encoder.encode_no_expire({"password" : raw_password})
+            # encoder = JwtEncoder
+            # encoded_password = encoder.encode_no_expire({"password" : raw_password})
+            
+            encrypter = CryptoGraphy(CRYPTOGRAPHY_KEY)
+            encrypted_password = encrypter.encrypt_text(raw_password)
+            print("Encrypted password  : ", encrypted_password)
+            
             date, time = date_time()
             date_with_time = f"{date} - {time}"
-            values = (date_with_time, email, first_name, last_name, number, encoded_password, False, "USER")
+            values = (date_with_time, email, first_name, last_name, number, encrypted_password, False, "USER")
             # Checking if connection already exist or not 
             cursor = DB_CONNECTION.cursor()    
             if not is_table_exist(SIGNUP_TABLE):

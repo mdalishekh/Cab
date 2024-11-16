@@ -33,13 +33,15 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-@app.get("/api/v2/gocab/sign-up/token")
+@app.get("/api/v2/gocab/sign-up/verify/token")
 async def verify_signup_token(token: str):
     decoder = JwtDecoder
-    result = decoder.decode_jwt(token)
+    status, result = decoder.decode_jwt(token)
+    if status:
+        return JSONResponse(result, status_code= 200)
     return JSONResponse({
-        "result" : result
-    })
+            "result" : result
+        }, status_code= 401)    
 
 @app.post("/api/v2/gocab/sign-up")
 async def sign_up_api(request: Request) -> dict:

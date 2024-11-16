@@ -45,6 +45,7 @@ DB_CONNECTION = db_connection()
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 ALGORITHM= "HS256"
+CRYPTOGRAPHY_KEY = os.getenv("CRYPTOGRAPHY_KEY")
 
 PROD_URL = "https://ourdomain.com"
 LOCAL_URL = "localhost:3000"
