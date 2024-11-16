@@ -61,8 +61,7 @@ async def sign_up_api(request: Request) -> dict:
         email_status = account_verify_sender(email, first_name, token_url)
         if email_status:
             logging.info("Mail sent")
-
-    return JSONResponse({
+        return JSONResponse({
                 "status" : "success",
                 "message" : "Account verification mail sent",
                 "user" : email,
