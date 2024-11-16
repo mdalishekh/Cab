@@ -33,6 +33,11 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+@app.get('/test')
+def test_api():
+    return {"status" : "Server is active"}
+
+
 @app.get("/api/v2/gocab/sign-up/verify/token")
 async def verify_signup_token(token: str):
     decoder = JwtDecoder
