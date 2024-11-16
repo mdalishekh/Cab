@@ -12,7 +12,7 @@ def signup_create_query() -> str:
             last_name VARCHAR,
             number VARCHAR,
             password VARCHAR,
-            verify BOOLEAN
+            verify BOOLEAN,
             user_role VARCHAR
             );
             """
