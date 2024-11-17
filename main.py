@@ -38,7 +38,7 @@ def test_api():
     return {"status" : "Server is active"}
 
 
-@app.get("/api/v2/gocab/sign-up/verify/token")
+@app.get("/auth/signup/verify/token")
 async def verify_signup_token(token: str):
     decoder = JwtDecoder
     status, result = decoder.decode_jwt(token)
@@ -53,7 +53,7 @@ async def verify_signup_token(token: str):
             "result" : result
         }, status_code= 401)    
 
-@app.post("/api/v2/gocab/sign-up")
+@app.post("/auth/signup")
 async def sign_up_api(request: Request) -> dict:
     # Getting the data from the request body
     logging.info("Starting API")
