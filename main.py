@@ -1,5 +1,5 @@
 # Importing some useful Packages to be used in this project 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from Configuration.config import *
@@ -37,9 +37,9 @@ app.add_middleware(
 def test_api():
     return {"status" : "Server is active"}
 
-
-@app.get("/auth/signup/verify/token")
-async def verify_signup_token(token: str):
+# Rest API for user account verification
+@app.get("/api/v1/gocab/auth/signup/verify/token")
+async def verify_signup_token(token: str = Form(...)):
     decoder = JwtDecoder
     status, result = decoder.decode_jwt(token)
     try:
@@ -48,12 +48,17 @@ async def verify_signup_token(token: str):
         pass
     if status:
         set_verify_true(user_email)
-        return JSONResponse(result, status_code= 200)
+        return JSONResponse({
+                            "status" : True,
+                            "message" : "You have been registerd",
+                            },status_code= 200)
+    # This is for negative scenario    
     return JSONResponse({
-            "result" : result
-        }, status_code= 401)    
+                        "result" : result
+                        }, status_code= 401)    
 
-@app.post("/auth/signup")
+# Rest API for user Sign up  
+@app.post("/api/v1/gocab/auth/signup")
 async def sign_up_api(request: Request) -> dict:
     # Getting the data from the request body
     logging.info("Starting API")
@@ -61,24 +66,50 @@ async def sign_up_api(request: Request) -> dict:
     first_name = json_data.get("firstName")
     email = json_data.get("email")
     database = DatabaseHandler
-    db_status = database.insert_signup_detail(json_data)
+    db_status, message = database.insert_signup_detail(json_data)
     if db_status:
         logging.info("Sign up details inserted in Database")
         jwt_encoder = JwtEncoder
-        token = jwt_encoder.encode_for_minutes({
-            "email" : email
-        }, 5)
-        # token_url = f"http://localhost:8000/api/v2/gocab/sign-up/token?token={token}"
+        token = jwt_encoder.encode_for_minutes({"email" : email}, 5)
         token_url = f"http://localhost:3000/verify/token/{token}"
         email_status = account_verify_sender(email, first_name, token_url)
         if email_status:
-            logging.info("Mail sent")
+            logging.info("Account verification email sent")
+        else:
+            message: str = "Email not sent"    
+        # This response will be sent while True scenario will come    
         return JSONResponse({
-                "status" : "success",
-                "message" : "Account verification mail sent",
-                "user" : email,
-                "token" : token
-            }, status_code= 200)
-    
+                            "status" : True ,
+                            "message" :"Account verification email sent",
+                            "token" :token
+                            }, status_code= 200)
+    # This response will be sent while false scenario will come    
+    return JSONResponse({
+                        "status" : False ,
+                        "message" :message
+                        }, status_code= 200)
 
-# redirect = f"http://localhost:3000/verify/token/{token}"
+
+# This Rest APi for Login User with user credential
+@app.post('/api/v1/gocab/auth/login')
+async def login_api(request: Request) -> dict:
+    try:
+        json_data = await request.json()
+        database = DatabaseHandler
+        status, message, token = database.login_verification(json_data)
+        if status:
+            logging.info(f"{message}")
+            return JSONResponse({
+                                "status" : True ,
+                                "message" : message,
+                                "token" : token
+                                }, status_code=200)
+        else:
+            logging.error(f"{message}")
+            return JSONResponse({
+                                "status" : False ,
+                                "message" : message
+                                }, status_code= 401)
+    except Exception as error:
+        logging.error(f"{error}")
+        JSONResponse({"error occurred while login " : error}) 

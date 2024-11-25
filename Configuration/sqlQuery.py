@@ -66,3 +66,81 @@ def set_verify_true(email: str) -> bool:
     except Exception as error:
         logging.error(error)  
         return False  
+    
+    
+# This function check if user email exist or not
+def is_user_exist(email: str) -> bool:
+    """
+    This function is intended to check if the user with given email exist or not.
+    
+    Args
+    -----
+        (str) : `email` User email.
+        
+    Returns
+    --------
+        (bool) : Returns `True` or `False`    
+    """
+    
+    try:
+        query = f"""
+                SELECT EXISTS 
+                (SELECT 1 FROM {SIGNUP_TABLE} WHERE email = %s)
+                """    
+        cursor = DB_CONNECTION.cursor()
+        cursor.execute(query, (email,))
+        exists = cursor.fetchone()[0]
+        # if DB_CONNECTION:
+        #     cursor.close()
+        #     DB_CONNECTION.close()
+        return exists
+    except Exception as error:
+        logging.error("Error occurred fetching user existance")
+        logging.error(error)
+        
+# This function check if user is verified or not
+def is_user_verified(email: str) -> bool :
+    """
+    This function is intended to check if the user with given email verified or not.
+    
+    Args
+    -----
+    (str) : `email` User email.
+        
+    Returns
+    --------
+        (bool) : Returns `True` or `False`
+    """
+    try:
+        query = f"""
+                SELECT verify FROM {SIGNUP_TABLE} 
+                WHERE email = %s
+                """
+        cursor = DB_CONNECTION.cursor()
+        cursor.execute(query, (email,))
+        is_verified = cursor.fetchone()[0]
+        return is_verified
+    except Exception as error:
+        logging.error("Error occurred while fetching user exist or not")
+        logging.error(error)
+        
+        
+# This function updates date and time in sign up table if user email exists
+def update_user_time(date_with_time: str, email: str)-> bool:
+    query = f"""
+            UPDATE {SIGNUP_TABLE} 
+            set date_time = %s
+            where email = %s
+            """        
+    cursor = DB_CONNECTION.cursor()
+    cursor.execute(query, (date_with_time, email))
+    DB_CONNECTION.commit()         
+    
+
+# This fucntion return password fetching query
+def fetch_password_query() -> str:
+    query = f"""
+            SELECT password from {SIGNUP_TABLE} 
+            where email = %s
+            """   
+    return query
