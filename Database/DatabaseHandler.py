@@ -106,7 +106,7 @@ class DatabaseHandler:
             logging.error(f"Password didn't matched")
             cursor.close()
             connection.close()
-            return False, "Invalid crednetials", None
+            return False, "Invalid credentials", None
         except Exception as error:
             logging.error(f"{error}")    
             return False, None, None

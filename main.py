@@ -50,7 +50,7 @@ async def verify_signup_token(token: str = Form(...)):
         set_verify_true(user_email)
         return JSONResponse({
                             "status" : True,
-                            "message" : "You have been registerd",
+                            "message" : "You have been registered",
                             },status_code= 200)
     # This is for negative scenario    
     return JSONResponse({
