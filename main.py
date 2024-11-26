@@ -80,7 +80,7 @@ async def sign_up_api(request: Request) -> dict:
         jwt_encoder = JwtEncoder
         token = jwt_encoder.encode_for_minutes({"email" : email}, 5)
         token_url = f"http://localhost:3000/verify/signup/token/{token}"
-        email_status = account_verify_sender(email, first_name, token_url)
+        email_status = signup_verify_sender(email, first_name, token_url)
         # Checking if email is sent or not
         if email_status:
             logging.info("Account verification email sent")
@@ -139,7 +139,7 @@ async def email_forget_password_api(request: Request) -> dict:
                 token = jwt_encoder.encode_for_minutes({"email": email}, 5)
                 token_url = f"http://localhost:3000/verify/forget-password/token/{token}"
                 first_name = get_first_name(email)
-                email_status = account_verify_sender(email, first_name, token_url)
+                email_status = forgot_password_verify_sender(email, first_name, token_url)
                 if email_status:
                     logging.info(f"Forget password verification Email sent to : {email}")
                     return JSONResponse({
