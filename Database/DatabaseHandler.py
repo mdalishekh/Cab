@@ -13,12 +13,13 @@ class DatabaseHandler:
         """
         Extract Signup data from Json and inserts into `User_credential` table.
         
-        Args:
-            >>> 
-        json_data (dict): Json data containing user details.
+        Args
+        ----- 
+        (dict) :  Json data containing user details.
         
-        Returns:
-        >>> bool
+        Returns
+        -------
+        (bool)
         """
         connection = db_connection()
         cursor = connection.cursor() 

@@ -83,7 +83,7 @@ class JwtDecoder:
             return True, payload
         except jwt.ExpiredSignatureError as signature_expire:
             logging.error(f"{signature_expire}")    
-            return False, "Signature has expired"
+            return False, "Session has expired"
         except jwt.InvalidTokenError as invalid_token:
             logging.error(f"{invalid_token}")
             return False, "Invalid Token"

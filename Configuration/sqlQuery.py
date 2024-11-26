@@ -144,3 +144,38 @@ def fetch_password_query() -> str:
             where email = %s
             """   
     return query
+
+
+# Getting first name corresponding to email
+def get_first_name(email: str) -> str:
+    try:
+        query = f"""
+                SELECT first_name FROM {SIGNUP_TABLE}
+                WHERE email = %s
+                """
+        connection = db_connection()
+        cursor = connection.cursor()
+        cursor.execute(query, (email,))
+        first_name = "".join(cursor.fetchone())
+        return first_name
+    except Exception as error:
+        logging.error(f"{error}")
+        
+# Updating password corresponding
+def update_password_sql(new_password: str, email: str) -> bool:
+    try:
+        query = f"""
+                UPDATE {SIGNUP_TABLE} 
+                set password = %s
+                where email = %s
+                """ 
+        connection = db_connection()
+        cursor = connection.cursor()
+        cursor.execute(query, (new_password, email,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return True
+    except Exception as error:
+        logging.error(f"{error}") 
+        return False  

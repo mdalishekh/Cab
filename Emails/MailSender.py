@@ -35,7 +35,6 @@ def account_verify_sender(user_email: str, first_name: str, token_url: str) -> b
             server.starttls()
             server.login(EMAIL_SENDER, EMAIL_SENDER_PASSWORD)
             server.sendmail(EMAIL_SENDER, user_email, msg.as_string())
-            logging.info(f"Account verification email sent to : {user_email}")
         return True
     except Exception as error:
         logging.error(f"ERROR OCCURED WHILE SENDING OTP TO {user_email} :" f"{error}")
