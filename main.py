@@ -43,7 +43,7 @@ def test_api():
 
 
 # Rest API for user account verification
-@app.get("/api/v1/gocab/auth/signup/verify/token")
+@app.post("/api/v1/gocab/auth/signup/verify/token")
 async def verify_signup_token(token: str = Form(...)):
     decoder = JwtDecoder
     status, payload = decoder.decode_jwt(token)
