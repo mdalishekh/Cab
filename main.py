@@ -9,6 +9,7 @@ from Database.LoginAndOtpVerifier import *
 from Emails.MailSender import *
 from Database.JWT import *
 from Cron.cron import cron_scheduler
+from Configuration.url import *
 
 # Initiating an instance for FastAPI 
 app = FastAPI()
@@ -79,6 +80,7 @@ async def sign_up_api(request: Request) -> dict:
         logging.info("Sign up details inserted in Database")
         jwt_encoder = JwtEncoder
         token = jwt_encoder.encode_for_minutes({"email" : email}, 5)
+        # Generating frontend url for account verification
         token_url = f"http://localhost:3000/verify/signup/token/{token}"
         email_status = signup_verify_sender(email, first_name, token_url)
         # Checking if email is sent or not
@@ -137,7 +139,8 @@ async def email_forget_password_api(request: Request) -> dict:
                 logging.info("User is verified")
                 jwt_encoder = JwtEncoder
                 token = jwt_encoder.encode_for_minutes({"email": email}, 5)
-                token_url = f"http://localhost:3000/verify/forget-password/token/{token}"
+                # Generating frontend url for forgot password email verification
+                token_url = forgot_password_url(token)
                 first_name = get_first_name(email)
                 email_status = forgot_password_verify_sender(email, first_name, token_url)
                 if email_status:
