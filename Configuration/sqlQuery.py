@@ -1,129 +1,34 @@
-# This module is intentionally made for returning all SQL queries.
 from Configuration.config import *
+from Database.LoginVerifier import *
 
-# Setting a table name to be created in run time 
-REGISTRAION_TABLE_NAME  = 'registration_details'
-OTP_TABLE_NAME = 'otp_verification'
-BOOKING_TABLE_NAME = 'bookings'
+SIGNUP_TABLE = "user_credential"
 
-
-
-# Creating a table in Postgres SQL for Registraion
-def registration_create_query():
-    query = f'''
-            CREATE TABLE {REGISTRAION_TABLE_NAME} (
-                ID SERIAL PRIMARY KEY,
-                user_email VARCHAR,         
-                first_name VARCHAR,         
-                last_name VARCHAR,          
-                phone_number VARCHAR,        
-                user_password VARCHAR,      
-                registration_date DATE,     
-                registration_time TIME      
-            );
-            '''
-    return query
-
-
-# This function is responsible to insert user's registration data into database            
-def registration_insert_query():
-    query = f'''
-            INSERT INTO {REGISTRAION_TABLE_NAME} (
-                user_email, 
-                first_name, 
-                last_name, 
-                phone_number, 
-                user_password, 
-                registration_date, 
-                registration_time
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
-            '''        
-    return query     
-
-
-#  Creating a table in Postgres SQL for OTP verification    
-def otp_verification_create_query():
-    query = f'''
-             CREATE TABLE {OTP_TABLE_NAME} (
-                ID SERIAL PRIMARY KEY,
-                user_email VARCHAR,
-                OTP VARCHAR,
-                is_valid BOOLEAN,
-                otp_date DATE,
-                otp_time TIME,
-                can_change_password BOOLEAN
-            );
-            '''       
-    return query
-
-
-# This function is responsible to insert user's registration OTP data into database
-def otp_insert_query():
-    query = f'''
-            INSERT INTO {OTP_TABLE_NAME} (user_email, OTP, is_valid, otp_date, otp_time, can_change_password)
-            VALUES (%s, %s, %s, %s, %s, %s);
-             '''
-    return query
-
-
-# This function is responsible to return Booking table create query
-def booking_create_query():
+def signup_create_query() -> str:
     query = f"""
-            CREATE TABLE {BOOKING_TABLE_NAME} (
+            CREATE TABLE {SIGNUP_TABLE} (
             id SERIAL PRIMARY KEY,
-            user_email VARCHAR,
-            pickup_location VARCHAR,
-            drop_location VARCHAR,
-            booking_date DATE,
-            booking_time TIME
+            date_time VARCHAR,
+            email VARCHAR,
+            first_name VARCHAR,
+            last_name VARCHAR,
+            number VARCHAR,
+            password VARCHAR,
+            verify BOOLEAN,
+            user_role VARCHAR
             );
             """
     return query
 
 
-# This function is responsible to create Booking table
-def booking_create_table():
-    try:
-        cursor = DB_CONNECTION.cursor()
-        cursor.execute(booking_create_query())
-    except:
-        return None
-
-
-# This function is responsible to return Booking table insert query
-def booking_insert_query():
-    query = f"""
-            INSERT INTO {BOOKING_TABLE_NAME} 
-            (user_email, pickup_location, drop_location, booking_date, booking_time)
-            VALUES (%s, %s, %s, %s, %s);
-            """
+def signup_insert_query() -> str:
+    query =  f"""
+        INSERT INTO {SIGNUP_TABLE} (date_time, email, first_name, last_name, number, password, verify, user_role)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+        """
     return query
-
-
-# OTP validator fetch query
-def fetch_otp_query():
-    query = f"""
-            SELECT otp, is_valid 
-            FROM {OTP_TABLE_NAME} WHERE 
-            user_email = %s
-            """
-    return query
-
-
-# This function is responsible for returning a query to update OTP
-def update_otp_query():
-    otp_update_query = f"""
-                    UPDATE {OTP_TABLE_NAME}
-                    SET otp = %s, is_valid = true,
-                    otp_date = %s, otp_time = %s
-                    WHERE user_email = %s;
-                    """
-    return  otp_update_query
-
 
 # This function is resposible for returning a query to check the table exists or not
-def is_table_exist_query(table_name):
+def is_table_exist_query(table_name: str) -> str:
     query = f"""
                 SELECT EXISTS (
                 SELECT 1 
@@ -135,9 +40,10 @@ def is_table_exist_query(table_name):
 
 
 # This function is resposible for check the table exists or not 
-def is_table_exist(table_name):
+def is_table_exist(table_name: str) -> bool:
     try:
-        pg_cursor = DB_CONNECTION.cursor()
+        connection = db_connection()
+        pg_cursor = connection.cursor()
         pg_cursor.execute(is_table_exist_query(table_name), (table_name,))
         exists = pg_cursor.fetchone()[0]
         pg_cursor.close()
@@ -145,94 +51,150 @@ def is_table_exist(table_name):
     except Exception as error:
         logging.error(f"ERROR OCCURED WHILE CHECKING {table_name} EXISTANCE: " f"{error}")
         return False
-
-
-def is_user_exist(user_email, table_name):
-    # Connecting with Database 
+    
+    
+# This function is responsible for Verifying user in datable
+def set_verify_true(email: str) -> bool:
     try:
-        cursor = DB_CONNECTION.cursor()
-        exists = is_table_exist(table_name)
-        if exists:
-            email_exist_query = f"""
-                    SELECT EXISTS (
-                    SELECT 1 
-                    FROM {table_name}
-                    WHERE user_email = %s
-                    );
-                    """
-            cursor.execute(email_exist_query, (user_email,))
-            email_exist = cursor.fetchone()[0]
-            return email_exist
-        return False
-    except Exception as error:
-        logging.error(f"Error occurred while checking user existence: {error}")
-        return False
-    
-    
-def get_first_name(user_email):
-    cursor = DB_CONNECTION.cursor()
-    if is_user_exist(user_email, REGISTRAION_TABLE_NAME):
         query = f"""
-                SELECT first_name FROM 
-                {REGISTRAION_TABLE_NAME} WHERE user_email = %s
+                Update user_credential
+                set verify = True where email = %s
+                """    
+        connection = db_connection()
+        pg_cursor = connection.cursor()        
+        pg_cursor = connection.cursor()
+        pg_cursor.execute(query, (email,))
+        connection.commit()
+        pg_cursor.close()
+        return True
+    except Exception as error:
+        logging.error(error)  
+        return False  
+    
+    
+# This function check if user email exist or not
+def is_user_exist(email: str) -> bool:
+    """
+    This function is intended to check if the user with given email exist or not.
+    
+    Args
+    -----
+        (str) : `email` User email.
+        
+    Returns
+    --------
+        (bool) : Returns `True` or `False`    
+    """
+    
+    try:
+        query = f"""
+                SELECT EXISTS 
+                (SELECT 1 FROM {SIGNUP_TABLE} WHERE email = %s)
+                """ 
+        connection = db_connection()           
+        cursor = connection.cursor()
+        cursor.execute(query, (email,))
+        exists = cursor.fetchone()[0]
+        return exists
+    except Exception as error:
+        logging.error("Error occurred fetching user existance")
+        logging.error(error)
+        return False
+        
+# This function check if user is verified or not
+def is_user_verified(email: str) -> bool :
+    """
+    This function is intended to check if the user with given email verified or not.
+    
+    Args
+    -----
+        (str) : `email` User email.
+        
+    Returns
+    --------
+        (bool) : Returns `True` or `False`
+    """
+    try:
+        query = f"""
+                SELECT verify FROM {SIGNUP_TABLE} 
+                WHERE email = %s
                 """
-        cursor.execute(query, (user_email,))        
-        first_name = cursor.fetchone()[0]
+        connection = db_connection()
+        cursor = connection.cursor()
+        cursor.execute(query, (email,))
+        is_verified = cursor.fetchone()[0]
+        return is_verified
+    except Exception as error:
+        logging.error("Error occurred while fetching user exist or not")
+        logging.error(error)
+        return False
+        
+        
+# This fucntion return password fetching query
+def fetch_password_query() -> str:
+    query = f"""
+            SELECT password from {SIGNUP_TABLE} 
+            where email = %s
+            """   
+    return query
+
+
+# Getting first name corresponding to email
+def get_first_name(email: str) -> str:
+    try:
+        query = f"""
+                SELECT first_name FROM {SIGNUP_TABLE}
+                WHERE email = %s
+                """
+        connection = db_connection()
+        cursor = connection.cursor()
+        cursor.execute(query, (email,))
+        first_name = "".join(cursor.fetchone())
         return first_name
-    return None   
+    except Exception as error:
+        logging.error(f"{error}")
+        return None
+        
+# Updating password corresponding
+def update_password_sql(new_password: str, email: str) -> bool:
+    try:
+        query = f"""
+                UPDATE {SIGNUP_TABLE} 
+                set password = %s
+                where email = %s
+                """    
+        # Hashing Password        
+        hashed_password = hash_password(new_password)       
+        connection = db_connection()
+        cursor = connection.cursor()
+        cursor.execute(query, (hashed_password, email,))
+        connection.commit()
+        cursor.close()
+        connection.close()
+        return True
+    except Exception as error:
+        logging.error(f"{error}") 
+        return False  
+    
+# This function updates date and time in sign up table if user email exists
+def update_user_data(values: tuple)-> bool:  
+    try:
+        date_time, first_name, last_name, number, password, verify, user_role, email = values
+        param = (date_time, first_name, last_name, number, password, verify, user_role, email)
+        query = f"""
+                UPDATE {SIGNUP_TABLE}
+                SET date_time = %s, first_name = %s, last_name = %s, 
+                number = %s, password = %s, verify = %s, user_role = %s
+                WHERE email = %s;
+            """    
 
-
-# OTP devalidator query
-def otp_devalid_query():
-    query = f'''
-                UPDATE {OTP_TABLE_NAME}
-                SET is_valid = false
-                WHERE user_email = %s;
-                '''
-    return query
-
-
-# Update password query
-def update_password_query():
-    query = f'''
-            UPDATE {REGISTRAION_TABLE_NAME}
-            SET user_password = %s,
-            registration_date = %s,
-            registration_time = %s
-            WHERE user_email = %s
-            '''
-    return query             
-
-
-# Fetch password query
-def fetch_password_query():
-    query = f"""
-            SELECT user_password 
-            FROM {REGISTRAION_TABLE_NAME} 
-            WHERE user_email = %s
-            """
-    return query
-
-
-# This if user is eligible to update their password
-def is_user_eligible(user_email):
-    cursor = DB_CONNECTION.cursor()
-    query = f"""
-            SELECT can_change_password 
-            FROM {OTP_TABLE_NAME} 
-            WHERE user_email = %s
-            """
-    cursor.execute(query, (user_email,))        
-    is_user_eligible = cursor.fetchone()[0]
-    return is_user_eligible             
-                   
-                   
-# This query will allow and deny the permission of changing password with / without OTP
-def can_change_allow_query():
-    query = f"""
-            UPDATE {OTP_TABLE_NAME}
-            SET otp_date = %s, 
-            otp_time = %s, can_change_password = %s
-            WHERE user_email = %s;
-            """
-    return query
+        connection = db_connection()             
+        cursor = connection.cursor()
+        cursor.execute(query, param)
+        connection.commit()
+        cursor.close()         
+        return True
+    except Exception as err:
+        logging.error(err)
+        return False
+    
