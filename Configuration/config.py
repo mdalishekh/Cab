@@ -27,25 +27,19 @@ DB_PARAMETER = {
         'port': os.getenv('DB_PORT')
     }
 
+# Building a connection with Postgres SQL 
+def db_connection():
+    try:
+        connection = psycopg2.connect(**DB_PARAMETER)
+        return connection
+    except Exception as e:
+        logging.error(f"Error while connecting to database: {str(e)}")
+        return None
+ 
+ 
 # Email sending credentials
 EMAIL_SENDER = os.getenv('EMAIL_SENDER')
 EMAIL_SENDER_PASSWORD = os.getenv('EMAIL_SENDER_PASSWORD')
-
-# Building a connection with Postgres SQL 
-def db_connection():
-        try:
-            connection = psycopg2.connect(**DB_PARAMETER)
-            return connection
-        except Exception as e:
-            logging.error(f"Error while connecting to database: {str(e)}")
-            
-# This varriable stores database connection            
-DB_CONNECTION = db_connection()
-
-
+# JWT secrets and algorithm
 JWT_SECRET = os.getenv("JWT_SECRET")
 ALGORITHM= "HS256"
-CRYPTOGRAPHY_KEY = os.getenv("CRYPTOGRAPHY_KEY")
-
-PROD_URL = "https://ourdomain.com"
-LOCAL_URL = "localhost:3000"

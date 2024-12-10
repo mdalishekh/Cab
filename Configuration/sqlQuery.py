@@ -1,4 +1,5 @@
 from Configuration.config import *
+from Database.LoginVerifier import *
 
 SIGNUP_TABLE = "user_credential"
 
@@ -90,13 +91,11 @@ def is_user_exist(email: str) -> bool:
         cursor = DB_CONNECTION.cursor()
         cursor.execute(query, (email,))
         exists = cursor.fetchone()[0]
-        # if DB_CONNECTION:
-        #     cursor.close()
-        #     DB_CONNECTION.close()
         return exists
     except Exception as error:
         logging.error("Error occurred fetching user existance")
         logging.error(error)
+        return False
         
 # This function check if user is verified or not
 def is_user_verified(email: str) -> bool :
@@ -105,7 +104,7 @@ def is_user_verified(email: str) -> bool :
     
     Args
     -----
-    (str) : `email` User email.
+        (str) : `email` User email.
         
     Returns
     --------
@@ -123,20 +122,9 @@ def is_user_verified(email: str) -> bool :
     except Exception as error:
         logging.error("Error occurred while fetching user exist or not")
         logging.error(error)
+        return False
         
         
-# This function updates date and time in sign up table if user email exists
-def update_user_time(date_with_time: str, email: str)-> bool:
-    query = f"""
-            UPDATE {SIGNUP_TABLE} 
-            set date_time = %s
-            where email = %s
-            """        
-    cursor = DB_CONNECTION.cursor()
-    cursor.execute(query, (date_with_time, email))
-    DB_CONNECTION.commit()         
-    
-
 # This fucntion return password fetching query
 def fetch_password_query() -> str:
     query = f"""
@@ -160,6 +148,7 @@ def get_first_name(email: str) -> str:
         return first_name
     except Exception as error:
         logging.error(f"{error}")
+        return None
         
 # Updating password corresponding
 def update_password_sql(new_password: str, email: str) -> bool:
@@ -168,10 +157,12 @@ def update_password_sql(new_password: str, email: str) -> bool:
                 UPDATE {SIGNUP_TABLE} 
                 set password = %s
                 where email = %s
-                """ 
+                """    
+        # Hashing Password        
+        hashed_password = hash_password(new_password)       
         connection = db_connection()
         cursor = connection.cursor()
-        cursor.execute(query, (new_password, email,))
+        cursor.execute(query, (hashed_password, email,))
         connection.commit()
         cursor.close()
         connection.close()
@@ -179,3 +170,26 @@ def update_password_sql(new_password: str, email: str) -> bool:
     except Exception as error:
         logging.error(f"{error}") 
         return False  
+    
+# This function updates date and time in sign up table if user email exists
+def update_user_data(values: tuple)-> bool:  
+    try:
+        date_time, first_name, last_name, number, password, verify, user_role, email = values
+        param = (date_time, first_name, last_name, number, password, verify, user_role, email)
+        query = f"""
+                UPDATE {SIGNUP_TABLE}
+                SET date_time = %s, first_name = %s, last_name = %s, 
+                number = %s, password = %s, verify = %s, user_role = %s
+                WHERE email = %s;
+            """    
+
+        connection = db_connection()             
+        cursor = connection.cursor()
+        cursor.execute(query, param)
+        connection.commit()
+        cursor.close()         
+        return True
+    except Exception as err:
+        logging.error(err)
+        return False
+    

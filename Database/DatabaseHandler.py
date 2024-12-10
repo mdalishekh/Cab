@@ -3,6 +3,7 @@
 from Configuration.config import *
 from Configuration.sqlQuery import *
 from Database.JWT import *
+from Database.LoginVerifier import *
 
 class DatabaseHandler:
     """
@@ -15,11 +16,11 @@ class DatabaseHandler:
         
         Args
         ----- 
-        (dict) :  Json data containing user details.
+            (dict) :  Json data containing user details.
         
         Returns
         -------
-        (bool)
+            (bool)
         """
         connection = db_connection()
         cursor = connection.cursor() 
@@ -30,10 +31,9 @@ class DatabaseHandler:
             last_name = json_data.get("lastName")
             number = json_data.get("phoneNumber")
             email = json_data.get("email")
-            raw_password = json_data.get("password")
-            # Encrypting User Password
-            # encrypter = CryptoGraphy(CRYPTOGRAPHY_KEY)
-            # encrypted_password = encrypter.encrypt_text(raw_password)            
+            raw_password = json_data.get("password") 
+            # Hashing password by bcrypt
+            hashed_password = str(hash_password(raw_password))
             date, time = date_time()
             date_with_time = f"{date} - {time}"
             # Creating Sign Up table if not exist
@@ -55,24 +55,36 @@ class DatabaseHandler:
                     return False, "User already registered"
                 else:
                     logging.info(f"User is not verified : {email}")
-                    update_user_time(date_with_time, email)
-                    connection.commit()
-                    cursor.close()
+                    values = (date_with_time, first_name, last_name, number, hashed_password, False, "USER",  email,)
+                    update_user_data(values)
                     return True, "Data inserted in database"
             else:
-                logging.info(f"User not exist : {email}")
-            values = (date_with_time, email, first_name, last_name, number, raw_password, False, "USER")
+                logging.info(f"User not exist : {email}")  
+            logging.info(f"Inserting data for new user : {email}")    
+            values = (date_with_time, email, first_name, last_name, number, hashed_password, False, "USER")
             # Inserting user details into `User_credential` table
             cursor.execute( signup_insert_query(), values)
             connection.commit()
             cursor.close()
             return True, "Data inserted successfully"
         except Exception as error:
-            logging.error(f"{error}")
+            logging.error(f"error caused : {error}")
             return False, None
         
     # This fucntion is for Login verification
-    def login_verification(json_data: dict) -> tuple[bool, str]:
+    def login_verification(json_data: dict) -> tuple[bool, str|None, str|None]:
+        """
+        This funcion is responsivle for login verification
+
+        Args
+        ----
+            (dict) : Takes json values as disctionary contains user credentials.
+
+        Returns
+        -------
+            tuple[bool, str|None, str|None]: If password verified then return with JWT.
+        """
+        
         try:
             email = json_data.get("email")
             password = json_data.get("password")
@@ -93,8 +105,10 @@ class DatabaseHandler:
             cursor.execute(fetch_password_query(), (email,))
             fetched_password = "".join(cursor.fetchone())
             # Checking if pasword matched 
-            if password == fetched_password:
-                logging.info(f"Password matched")
+            is_password_correct = verify_hashed_password(password, bytes(fetched_password.encode('utf-8')))
+            # Checking if password is correct or not
+            if is_password_correct:
+                logging.info(f"Hashed Password matched")
                 try: 
                     jwt_encoder = JwtEncoder
                     token = jwt_encoder.encode_for_minutes({"email" : email}, 5)

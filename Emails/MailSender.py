@@ -10,15 +10,13 @@ def signup_verify_sender(user_email: str, first_name: str, token_url: str) -> bo
     
     Args
     ----
-        >>>
-    user_email (str): Email of user.
-    first_name (str): First name of user.
-    token_url  (str): Token URL with JWT.
+        user_email (str): Email of user.
+        first_name (str): First name of user.
+        token_url  (str): Token URL with JWT.
     
     Returns
-    -------
-        >>> 
-    bool: True if email sent successfully, False otherwise.
+    ------- 
+        (bool)
     """
     try:
         mail = SendEmailLayout
@@ -49,16 +47,15 @@ def forgot_password_verify_sender(user_email: str, first_name: str, token_url: s
     
     Args
     ----
-        >>>
-    user_email (str): Email of user.
-    first_name (str): First name of user.
-    token_url  (str): Token URL with JWT.
+        user_email (str): Email of user.
+        first_name (str): First name of user.
+        token_url  (str): Token URL with JWT.
     
     Returns
-    -------
-        >>> 
-    bool: True if email sent successfully, False otherwise.
+    ------- 
+        (bool)
     """
+    
     try:
         mail = SendEmailLayout
         logging.info(f"Sending signup verification email to : {user_email}")

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from Configuration.config import *
 from Configuration.sqlQuery import *
 from Database.DatabaseHandler import *
-from Database.LoginAndOtpVerifier import *
+from Database.LoginVerifier import *
 from Emails.MailSender import *
 from Database.JWT import *
 from Cron.cron import cron_scheduler
@@ -20,8 +20,8 @@ origins = [
     "http://localhost:5500",
     "http://127.0.0.1:5501",
     "http://127.0.0.1:5500/",
-    "https://gocab.netlify.app",
-    "https://gocab.netlify.app/",
+    "https://go-cab-ten.vercel.app",
+    "https://go-cab-ten.vercel.app/",
     # You can add more origins here if needed
 ]
 
@@ -55,13 +55,13 @@ async def verify_signup_token(token: str = Form(...)):
     if status:
         set_verify_true(user_email)
         return JSONResponse({
-                            "status" : True,
-                            "message" : "You have been registered",
+                                "status" : True,
+                                "message" : "You have been registered",
                             },status_code= 200)
     # This response will be delivered when token is Invalid/Expired  
     return JSONResponse({
-                        "status" : False,
-                        "message" : payload
+                            "status" : False,
+                            "message" : payload
                         }, status_code= 401)    
 
 
@@ -81,7 +81,7 @@ async def sign_up_api(request: Request) -> dict:
         jwt_encoder = JwtEncoder
         token = jwt_encoder.encode_for_minutes({"email" : email}, 5)
         # Generating frontend url for account verification
-        token_url = f"http://localhost:3000/verify/signup/token/{token}"
+        token_url = account_verify_url(token)
         email_status = signup_verify_sender(email, first_name, token_url)
         # Checking if email is sent or not
         if email_status:
@@ -90,13 +90,13 @@ async def sign_up_api(request: Request) -> dict:
             message: str = "Email not sent"    
         # This response will be sent while True scenario will come    
         return JSONResponse({
-                            "status" : True ,
-                            "message" : "Account verification email sent",
+                                "status" : True ,
+                                "message" : "Account verification email sent",
                             }, status_code= 200)
     # This response will be sent while false scenario will come    
     return JSONResponse({
-                        "status" : False ,
-                        "message" : message
+                            "status" : False ,
+                            "message" : message
                         }, status_code= 401)
 
 
@@ -111,15 +111,15 @@ async def login_api(request: Request) -> dict:
         if status:
             logging.info(f"{message}")
             return JSONResponse({
-                                "status" : True ,
-                                "message" : message,
-                                "token" : token
+                                    "status" : True ,
+                                    "message" : message,
+                                    "token" : token
                                 }, status_code=200)
         else:
             logging.error(f"{message}")
             return JSONResponse({
-                                "status" : False ,
-                                "message" : message
+                                    "status" : False ,
+                                    "message" : message
                                 }, status_code= 401)
     except Exception as error:
         logging.error(f"{error}")
@@ -146,14 +146,14 @@ async def email_forget_password_api(request: Request) -> dict:
                 if email_status:
                     logging.info(f"Forget password verification Email sent to : {email}")
                     return JSONResponse({
-                                        "status" : True,
-                                        "message" : "Email sent successfully"
+                                            "status" : True,
+                                            "message" : "Email sent successfully"
                                         }, status_code= 200)
                 else:
                     logging.error(f"Email not sent to : {email}")
                     return JSONResponse({
-                                        "status" : False,
-                                        "message" : "Email not sent"
+                                            "status" : False,
+                                            "message" : "Email not sent"
                                         }, status_code= 404)
             else:
                 logging.info("User is not verified")
@@ -165,8 +165,8 @@ async def email_forget_password_api(request: Request) -> dict:
         else:
             logging.info("User not found in database")
             return JSONResponse({
-                                "status" : False,
-                                "message" : "User not found"
+                                    "status" : False,
+                                    "message" : "User not found"
                                 }, status_code= 404)
     except Exception as error:
         logging.error(f"{error}")
@@ -189,8 +189,8 @@ async def change_password_api(request: Request) -> dict:
         else:
             logging.info(f"{decoded_str}")
             return JSONResponse({
-                "status": False, 
-                "message": decoded_str
+                    "status": False, 
+                    "message": decoded_str
                 }, status_code= 401)
             
         email = decoded_str.get("email")
@@ -204,11 +204,9 @@ async def change_password_api(request: Request) -> dict:
         else:
             logging.error(f"Password not updated for user : {email}")
             return JSONResponse({
-                                "status" : False,
-                                "message" : "Password not updated"
+                                    "status" : False,
+                                    "message" : "Password not updated"
                                 })
     except Exception as error:
         logging.error(f"{error}")
-        return JSONResponse({
-                            "error occurred while changing password " : error
-                            })
+        return JSONResponse({"error occurred while changing password " : error})
