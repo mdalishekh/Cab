@@ -42,7 +42,8 @@ def is_table_exist_query(table_name: str) -> str:
 # This function is resposible for check the table exists or not 
 def is_table_exist(table_name: str) -> bool:
     try:
-        pg_cursor = DB_CONNECTION.cursor()
+        connection = db_connection()
+        pg_cursor = connection.cursor()
         pg_cursor.execute(is_table_exist_query(table_name), (table_name,))
         exists = pg_cursor.fetchone()[0]
         pg_cursor.close()
@@ -59,9 +60,11 @@ def set_verify_true(email: str) -> bool:
                 Update user_credential
                 set verify = True where email = %s
                 """    
-        pg_cursor = DB_CONNECTION.cursor()
+        connection = db_connection()
+        pg_cursor = connection.cursor()        
+        pg_cursor = connection.cursor()
         pg_cursor.execute(query, (email,))
-        DB_CONNECTION.commit()
+        connection.commit()
         pg_cursor.close()
         return True
     except Exception as error:
@@ -87,8 +90,9 @@ def is_user_exist(email: str) -> bool:
         query = f"""
                 SELECT EXISTS 
                 (SELECT 1 FROM {SIGNUP_TABLE} WHERE email = %s)
-                """    
-        cursor = DB_CONNECTION.cursor()
+                """ 
+        connection = db_connection()           
+        cursor = connection.cursor()
         cursor.execute(query, (email,))
         exists = cursor.fetchone()[0]
         return exists
@@ -115,7 +119,8 @@ def is_user_verified(email: str) -> bool :
                 SELECT verify FROM {SIGNUP_TABLE} 
                 WHERE email = %s
                 """
-        cursor = DB_CONNECTION.cursor()
+        connection = db_connection()
+        cursor = connection.cursor()
         cursor.execute(query, (email,))
         is_verified = cursor.fetchone()[0]
         return is_verified
