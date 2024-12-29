@@ -2,6 +2,7 @@ from Configuration.config import *
 from Database.LoginVerifier import *
 
 SIGNUP_TABLE = "user_credential"
+VEHICLE_PRICING = "vehicle_pricing"
 
 def signup_create_query() -> str:
     query = f"""
@@ -18,7 +19,6 @@ def signup_create_query() -> str:
             );
             """
     return query
-
 
 def signup_insert_query() -> str:
     query =  f"""
@@ -43,10 +43,11 @@ def is_table_exist_query(table_name: str) -> str:
 def is_table_exist(table_name: str) -> bool:
     try:
         connection = db_connection()
-        pg_cursor = connection.cursor()
-        pg_cursor.execute(is_table_exist_query(table_name), (table_name,))
-        exists = pg_cursor.fetchone()[0]
-        pg_cursor.close()
+        cursor = connection.cursor()
+        cursor.execute(is_table_exist_query(table_name), (table_name,))
+        exists = cursor.fetchone()[0]
+        cursor.close()    
+        connection.close() 
         return exists
     except Exception as error:
         logging.error(f"ERROR OCCURED WHILE CHECKING {table_name} EXISTANCE: " f"{error}")
@@ -95,6 +96,8 @@ def is_user_exist(email: str) -> bool:
         cursor = connection.cursor()
         cursor.execute(query, (email,))
         exists = cursor.fetchone()[0]
+        cursor.close()     
+        connection.close() 
         return exists
     except Exception as error:
         logging.error("Error occurred fetching user existance")
@@ -123,6 +126,8 @@ def is_user_verified(email: str) -> bool :
         cursor = connection.cursor()
         cursor.execute(query, (email,))
         is_verified = cursor.fetchone()[0]
+        cursor.close()     
+        connection.close() 
         return is_verified
     except Exception as error:
         logging.error("Error occurred while fetching user exist or not")
@@ -192,9 +197,37 @@ def update_user_data(values: tuple)-> bool:
         cursor = connection.cursor()
         cursor.execute(query, param)
         connection.commit()
-        cursor.close()         
+        cursor.close()     
+        connection.close()    
         return True
     except Exception as err:
         logging.error(err)
         return False
     
+# This function is responsible for returning a query which fetches user's role
+def get_role_query()-> str:
+    query = f"""
+            SELECT user_role FROM {SIGNUP_TABLE} WHERE email = %s
+        """    
+    return query  
+
+
+# This function is responsible for creating table for Vehicle pricing 
+def create_pricing_table()-> str:
+    query = f"""
+            CREATE TABLE {VEHICLE_PRICING}
+            (id SERIAL PRIMARY KEY, 
+            vehicle_name VARCHAR, 
+            code VARCHAR, 
+            price_per_km float);
+            """
+    return query   
+
+
+# This function is responsible for returning a query which insert vehicle price 
+def insert_price_query()-> str:
+    query = f"""
+            INSERT INTO {VEHICLE_PRICING} (vehicle_name, code, price_per_km)
+            VALUES (%s, %s, %s);
+            """
+    return query      

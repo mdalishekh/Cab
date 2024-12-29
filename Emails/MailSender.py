@@ -58,7 +58,7 @@ def forgot_password_verify_sender(user_email: str, first_name: str, token_url: s
     
     try:
         mail = SendEmailLayout
-        logging.info(f"Sending signup verification email to : {user_email}")
+        logging.info(f"Sending forget password verification email to : {user_email}")
         # Getting HTML layout for sending email
         html_body = mail.forgot_password_verify_layout(first_name, token_url)
         # Create MIMEText object with 'html' MIME type

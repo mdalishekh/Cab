@@ -1,15 +1,18 @@
 # Importing some useful Packages to be used in this project 
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, Header, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from Configuration.config import *
-from Configuration.sqlQuery import *
+from Cron.cron import cron_scheduler
+from Emails.MailSender import *
 from Database.DatabaseHandler import *
 from Database.LoginVerifier import *
-from Emails.MailSender import *
 from Database.JWT import *
-from Cron.cron import cron_scheduler
-from Configuration.url import *
+from Database.AuthConfig import *
+from Configuration.UiRoutes import *
+from Configuration.config import *
+from Configuration.sqlQuery import *
+from Configuration.ApiRoutes import *
+
 
 # Initiating an instance for FastAPI 
 app = FastAPI()
@@ -43,30 +46,8 @@ def test_api():
     return {"status" : "Server is active"}
 
 
-# Rest API for user account verification
-@app.post("/api/v1/gocab/auth/signup/verify/token")
-async def verify_signup_token(token: str = Form(...)):
-    decoder = JwtDecoder
-    status, payload = decoder.decode_jwt(token)
-    try:
-        user_email = payload.get("email")
-    except:
-        logging.error(f"{payload} for user")
-    if status:
-        set_verify_true(user_email)
-        return JSONResponse({
-                                "status" : True,
-                                "message" : "You have been registered",
-                            },status_code= 200)
-    # This response will be delivered when token is Invalid/Expired  
-    return JSONResponse({
-                            "status" : False,
-                            "message" : payload
-                        }, status_code= 401)    
-
-
 # Rest API for user Sign up  
-@app.post("/api/v1/gocab/auth/signup")
+@app.post(SIGNUP_API_URL)
 async def sign_up_api(request: Request) -> dict:
     # Getting the data from the request body
     logging.info("Sign Up API initiated")
@@ -100,8 +81,30 @@ async def sign_up_api(request: Request) -> dict:
                         }, status_code= 401)
 
 
+# Rest API for user account verification
+@app.post(SIGNUP_VERIFY_TOKEN_API_URL)
+async def verify_signup_token(token: str = Form(...)):
+    decoder = JwtDecoder
+    status, payload = decoder.decode_jwt(token)
+    try:
+        user_email = payload.get("email")
+    except:
+        logging.error(f"{payload} for user")
+    if status:
+        set_verify_true(user_email)
+        return JSONResponse({
+                                "status" : True,
+                                "message" : "You have been registered",
+                            },status_code= 200)
+    # This response will be delivered when token is Invalid/Expired  
+    return JSONResponse({
+                            "status" : False,
+                            "message" : payload
+                        }, status_code= 401)    
+
+
 # This Rest APi for Login User with user credential
-@app.post('/api/v1/gocab/auth/login')
+@app.post(LOGIN_API_URL)
 async def login_api(request: Request) -> dict:
     try:
         logging.info("Login API initiated")
@@ -127,7 +130,7 @@ async def login_api(request: Request) -> dict:
         
         
 # Rest API to get email for forget password
-@app.post('/api/v1/gocab/auth/forget-password')        
+@app.post(FORGET_PASSWORD_API_URL)
 async def email_forget_password_api(request: Request) -> dict:
     try:
         logging.info("Forget Password email API initiated")
@@ -175,7 +178,7 @@ async def email_forget_password_api(request: Request) -> dict:
         
    
 # Rest api for changing password 
-@app.post('/api/v1/gocab/auth/change-password')
+@app.post(UPDATE_PASSWORD_API_URL)
 async def change_password_api(request: Request) -> dict:
     try:
         logging.info("Changing password API initiated")
@@ -210,3 +213,49 @@ async def change_password_api(request: Request) -> dict:
     except Exception as error:
         logging.error(f"{error}")
         return JSONResponse({"error occurred while changing password " : error})
+    
+    
+
+# Rest API for Price insertion in Database (Admin access only)
+@app.post(PRICE_INSERTION_API_URL)
+async def price_insertion(request: Request,
+                        authorization: str = Header(...)
+                        )-> dict:
+    # Validate and extract the token
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid Authorization header")
+    token = authorization[len("Bearer "):]
+    jwt_decoder = JwtDecoder
+    status, payload = jwt_decoder.decode_jwt(token)
+    if not status:
+        return JSONResponse({
+                            "status": False,
+                            "message" : payload
+                            }, status_code=401)
+    # Extracting user email from JWT payload
+    user_email = payload.get("email")  
+    auth_security = AuthSecurityFilter
+    if not auth_security.has_access(user_email, "ADMIN"):
+        return JSONResponse({
+                                "status" : False,
+                                "message" : "You don't have sufficient permission to access this API."
+                            }, status_code=401)
+        
+    # Parse JSON data from the request body
+    try:
+        json_data:dict = await request.json()
+        # Inserting price into database
+        admin_action = AdminAction
+        status, message = admin_action.insert_price(json_data)
+        if not status:
+            return JSONResponse({
+                                    "status" : False,
+                                    "message" : message
+                                }, status_code=500)
+        return JSONResponse({
+                                "status" : True,
+                                "message" : message
+                            }, status_code= 201)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail= e)
+    
