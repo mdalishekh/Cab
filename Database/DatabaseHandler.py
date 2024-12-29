@@ -125,3 +125,51 @@ class DatabaseHandler:
         except Exception as error:
             logging.error(f"{error}")    
             return False, None, None
+       
+     
+class AdminAction:
+    """
+    This class is responsible for perform Database tasks
+    only for `ADMIN ONLY`
+    """         
+    def insert_price(json_data: dict)-> tuple[bool, str]:
+        """`ADMIN ONLY`
+        This function will insert
+        price in database table
+        
+        Args
+        ----
+            values (tuple): Values to be inserted into database
+
+        Returns
+        --------
+            bool: True/False based on success
+        """
+        
+        vehicle_name: str = json_data.get("vehicleName")
+        vehicle_code: str = json_data.get("vehicleCode")
+        price_per_km: float = json_data.get("pricePerKm")
+        # Checking if price is float or not 
+        if not isinstance(price_per_km, float):
+            price_per_km: float = float(price_per_km)
+        
+        try:
+            connection = db_connection()
+            cursor = connection.cursor()
+            if not is_table_exist(VEHICLE_PRICING):
+                logging.info("Creating Vehicle pricing table")
+                cursor.execute(create_pricing_table())
+                logging.info("Vehicle pricing table has been created")
+            try:
+                cursor.execute(insert_price_query(), (vehicle_name, vehicle_code, price_per_km,))
+                logging.info("price data inserted")
+            except Exception as er:
+                logging.error(er)
+            connection.commit()
+            cursor.close()
+            connection.close()
+            return True, "Price added in Vehicle pricing table"
+        except Exception as err:
+            logging.error(f"{err}")
+            return False, str(err)
+        

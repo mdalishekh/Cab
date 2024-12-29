@@ -57,7 +57,7 @@ class JwtDecoder:
     This class contains all types of `JWT` decoding operations.
     """        
     # This function will decode any JWT token and return actual JSON data.
-    def decode_jwt(token: str) -> dict | bool:
+    def decode_jwt(token: str) -> tuple[bool, dict]:
         """
         This function will decode all `JWT` and return actual JSON.
         

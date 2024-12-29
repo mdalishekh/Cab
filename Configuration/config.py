@@ -2,6 +2,7 @@
 import os
 import logging
 import psycopg2
+from psycopg2.extensions import connection as Connection
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -30,7 +31,7 @@ DB_PARAMETER = {
 # Building a connection with Postgres SQL 
 def db_connection():
     try:
-        connection = psycopg2.connect(**DB_PARAMETER)
+        connection: Connection = psycopg2.connect(**DB_PARAMETER)
         return connection
     except Exception as e:
         logging.error(f"Error while connecting to database: {str(e)}")
