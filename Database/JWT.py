@@ -4,7 +4,7 @@ This Module handle entire `JWT` operations.
 
 import jwt  
 from datetime import datetime, timedelta, timezone
-from configuration.config import *
+from Configuration.config import *
 
 
 class JwtEncoder:
