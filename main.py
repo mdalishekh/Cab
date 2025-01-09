@@ -8,10 +8,10 @@ from Database.DatabaseHandler import *
 from Database.LoginVerifier import *
 from Database.JWT import *
 from Database.AuthConfig import *
-from Configuration.UiRoutes import *
-from Configuration.config import *
-from Configuration.sqlQuery import *
-from Configuration.ApiRoutes import *
+from configuration.UiRoutes import *
+from configuration.config import *
+from configuration.sqlQuery import *
+from configuration.ApiRoutes import *
 
 
 # Initiating an instance for FastAPI 
@@ -51,10 +51,10 @@ def test_api():
 async def sign_up_api(request: Request) -> dict:
     # Getting the data from the request body
     logging.info("Sign Up API initiated")
-    json_data = await request.json()
+    json_data: dict = await request.json()
     first_name = json_data.get("firstName")
     email = json_data.get("email")
-    database = DatabaseHandler
+    database = DatabaseHandle
     db_status, message = database.insert_signup_detail(json_data)
     # Checking if data is inserted in database or not
     if db_status: 
@@ -108,8 +108,8 @@ async def verify_signup_token(token: str = Form(...)):
 async def login_api(request: Request) -> dict:
     try:
         logging.info("Login API initiated")
-        json_data = await request.json()
-        database = DatabaseHandler
+        json_data: dict = await request.json()
+        database = DatabaseHandle
         status, message, token = database.login_verification(json_data)
         if status:
             logging.info(f"{message}")
@@ -134,7 +134,7 @@ async def login_api(request: Request) -> dict:
 async def email_forget_password_api(request: Request) -> dict:
     try:
         logging.info("Forget Password email API initiated")
-        json_data = await request.json()
+        json_data: dict = await request.json()
         email = json_data.get("email")
         if is_user_exist(email):
             logging.info("User found in database")
@@ -182,7 +182,7 @@ async def email_forget_password_api(request: Request) -> dict:
 async def change_password_api(request: Request) -> dict:
     try:
         logging.info("Changing password API initiated")
-        json_data = await request.json()
+        json_data: dict = await request.json()
         new_password = json_data.get("confirmPassword")
         token = json_data.get("token")
         jwt_decoder = JwtDecoder
@@ -256,6 +256,94 @@ async def price_insertion(request: Request,
                                 "status" : True,
                                 "message" : message
                             }, status_code= 201)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail= e)
+    except Exception as err:
+        return JSONResponse({"error occurred" : err})
     
+# Rest api for getting default vehicle's price
+@app.get(FAIR_PRICE_API_URL)    
+async def get_vehicle_price(request: Request):
+    # Get vehicle price per KM
+    try:
+        price_data = PriceAction
+        vehicle_price_json: dict = price_data.default_fair_price()
+        if vehicle_price_json is not None:
+            return JSONResponse(vehicle_price_json, status_code=200)
+        return JSONResponse({
+            "status" : False,
+            "message" : "Error occurred while fetching default fair price"
+        }, status_code= 500)
+    except Exception as err:
+        return JSONResponse({"error occurred" : err})
+    
+    
+# Now all APIs are related to Cab Booking
+# Rest api for booking cab  
+@app.post(CAB_BOOKING_API_URL)
+async def book_ride_api(request: Request, 
+                    authorization: str = Header(...))-> dict:
+    # Extracting user email from JWT payload
+    try:
+        booking_detail_dict: dict = await request.json()
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid Authorization header")
+        token = authorization[len("Bearer "):]
+        jwt_decoder = JwtDecoder
+        status, payload = jwt_decoder.decode_jwt(token)
+        if not status:
+            return JSONResponse({
+                                "status": False,
+                                "message" : payload
+                                }, status_code=401)
+        # Extracting user email from JWT payload
+        user_email = payload.get("email")  
+        database = DatabaseHandle
+        status = database.cab_booking_insert(booking_detail_dict, user_email)
+        if not status:
+            return JSONResponse({
+                "status" : False,
+                "message" : "Cab could not be booked"
+            }, status_code= 400)
+        return JSONResponse({
+            "status" : True,
+            "message" : "Cab booked successfully"
+        }, status_code= 200)    
+        
+    except Exception as err:
+        return JSONResponse({"error occurred" : err})
+    
+    
+@app.post(RIDE_HISTORY_API_URL)    
+async def ride_history_api(request: Request,
+                           authorization: str = Header(...))-> dict:
+    try:
+        logging.info("Ride hsitory API initiated")
+        json_data: dict = await request.json()
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid Authorization header")
+        token = authorization[len("Bearer "):]
+        jwt_decoder = JwtDecoder
+        status, payload = jwt_decoder.decode_jwt(token)
+        if not status:
+            return JSONResponse({
+                                "status": False,
+                                "message" : payload
+                                }, status_code=401)
+        # Extracting user email from JWT payload
+        user_email = payload.get("email")  
+        database = DatabaseHandle
+        logging.info(f"Getting ride hsitory for user :  {user_email}")
+        status, ride_history_dict = database.get_ride_history(user_email)
+        if not status:
+            return JSONResponse({
+                
+                "status" : False,
+                "message" : ride_history_dict
+            })
+        return JSONResponse(ride_history_dict)
+        
+    except Exception as err:
+        logging.error(err)
+        return JSONResponse({
+            "status" : False,
+            "message" : err
+        }, status_code= 500)

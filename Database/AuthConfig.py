@@ -3,7 +3,7 @@
     any specific access or not
 """
 
-from Configuration.config import *
+from configuration.config import *
 from Database.DatabaseHandler import *
 
 class AuthSecurityFilter:
@@ -33,7 +33,7 @@ class AuthSecurityFilter:
             connection = db_connection()
             cursor = connection.cursor()
             cursor.execute(get_role_query(), (user_email,))
-            fetched_result = "".join(cursor.fetchone())
+            fetched_result: str = "".join(cursor.fetchone())
             if fetched_result.lower() == role.lower():
                 cursor.close()     
                 connection.close() 

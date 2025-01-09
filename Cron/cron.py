@@ -1,6 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from Configuration.config import *
+from configuration.config import *
 import time
 
 # This will print a log in server side 

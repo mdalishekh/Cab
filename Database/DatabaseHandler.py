@@ -1,11 +1,13 @@
 # This module is specially made for performing database related tasks
 # Importing some useful Packages to be used in database related tasks
-from Configuration.config import *
-from Configuration.sqlQuery import *
+from configuration.config import *
+from configuration.sqlQuery import *
 from Database.JWT import *
 from Database.LoginVerifier import *
+from collections import defaultdict
+import json
 
-class DatabaseHandler:
+class DatabaseHandle:
     """
     Class for database related operations.
     """
@@ -111,7 +113,7 @@ class DatabaseHandler:
                 logging.info(f"Hashed Password matched")
                 try: 
                     jwt_encoder = JwtEncoder
-                    token = jwt_encoder.encode_for_minutes({"email" : email}, 5)
+                    token = jwt_encoder.encode_for_minutes({"email" : email}, 5) # Token is valid for only 5 minutes
                 except Exception as error:
                     logging.error(f"{error}")
                 cursor.close()
@@ -125,8 +127,147 @@ class DatabaseHandler:
         except Exception as error:
             logging.error(f"{error}")    
             return False, None, None
-       
+        
+    def cab_booking_insert(json_data: dict, user_email: str):
+        connection = db_connection()
+        cursor = connection.cursor()
+        # Booking details to be inserted in Database
+        pickup_address: str = json_data.get("pickupAddress")
+        drop_address: str = json_data.get("dropAddress")
+        pickup_coordinates: list[float, float] = json_data.get("pickupCoordinates")
+        drop_coordinates: list[float, float] = json_data.get("dropCoordinates")
+        booking_date: str = json_data.get("date")
+        booking_time: str = json_data.get("time")
+        distance: int = json_data.get("distance")
+        vehicle_code = json_data.get("vehicleCode")
+        
+        # Getting the current default price per KM
+        cursor.execute(get_price_query(), (vehicle_code,))
+        default_price:int  = cursor.fetchone()[0]
+        # Calculating the total price of the ride
+        ride_fair: float = float(default_price * distance / 1000)
+        ride_fair = max(ride_fair, default_price)
+        auth_id: int = get_auth_id(user_email)
+        if not auth_id or auth_id is None:
+            return False
+        values = (booking_date, booking_time, auth_id, pickup_address, 
+                  drop_address, distance, pickup_coordinates,
+                  drop_coordinates, vehicle_code,  ride_fair, True)
+        # Inserting all details In Database
+        if not is_table_exist(CAB_BOOKING_TABLE):
+            try:
+                logging.info("Cab booking table doesn't exist")
+                logging.info("Creating Cab booking table")
+                cursor.execute(booking_create_query())
+            except:
+                logging.error(f"Error in creating table {CAB_BOOKING_TABLE}")
+        try:        
+            cursor.execute(booking_insert_query(), values)
+            connection.commit()
+            logging.info("Cab booking data inserted into database")
+            return True
+        except Exception as err:
+            logging.error(err)
+            return False
+        finally:
+            cursor.close()
+            connection.close()
+            
+    
+    def get_ride_history(user_email: str)-> tuple[bool, dict|str]:
+        """This function will provide ride history to users
+
+        Args
+        ----
+            user_email (str): Takes email as parameter , to identify which is requesting for 
+            for ride history
+
+        Returns
+        -------
+            tuple[bool, dict|str]: returns boolean ans a dictionary with ride history
+        """
+        connection = db_connection()
+        cursor = connection.cursor()
+        auth_id: int = get_auth_id(user_email)
+        if not auth_id or auth_id is None:
+            logging.error(f"User not exist : {user_email}")
+            return False, "User not exist"
+        try:
+            cursor.execute(ride_history_query(), (auth_id,))
+            ride_history_data = cursor.fetchall()
+            keys = [
+                "date",
+                "time",
+                "pickupAddress",
+                "dropAddress",
+                "distance",
+                "vehicleName",
+                "rideFair",
+                "paymentStatus"
+            ]    
+            ride_history_dict = {"rideHistory": []}
+    
+            for row in ride_history_data:
+                # Convert the row into a dictionary
+                record = dict(zip(keys, row))
+                # Fetch vehicle name using the vehicle code
+                vehicle_code = record["vehicleName"]  # Fetch the vehicle code (currently stored here)
+                cursor.execute(get_vehicle_name(), (vehicle_code,))  # Query to get the vehicle name
+                vehicle_name = cursor.fetchone()  # Fetch the result
+                # Replace the vehicle code with the vehicle name
+                if vehicle_name:
+                    record["vehicleName"] = vehicle_name[0]  # Assuming the query returns a single value
+                # Add the updated record to the ride history list
+                ride_history_dict["rideHistory"].append(record)
+            
+            return True, ride_history_dict 
+        except Exception as err:
+            logging.error(err)
+            return False, "No ride history found"   
+                    
+            
+class PriceAction:
+    """This class is for price related task from database
+    """
+    
+    def default_fair_price()-> dict:
+        """This method is for fetching price from database
+        
+        Args
+        ----
+            None
+        
+        Returns
+        -------
+            dict | None 
+        """
+        try:
+            connection = db_connection()
+            cursor = connection.cursor()
+            cursor.execute(fetch_price_query())
+            rows = cursor.fetchall()
+            # Group data into the required JSON structure
+            vehicle_data = defaultdict(list)
+            for row in rows:
+                vehicle_name, code, price_per_km = row
+                vehicle_type = code[4:].upper()
+                # Add the vehicle data to the corresponding category
+                vehicle_data[vehicle_type].append({
+                    "vehicleName": vehicle_name,
+                    "vehicleCode": code,
+                    "pricePerKM": price_per_km
+                })
+                
+            # Convert defaultdict to a regular dict
+            vehicle_data = dict(vehicle_data)
+            # Return the JSON representation
+            return vehicle_data
+        except Exception as err:
+            logging.error(f"{err}")
+            return None
      
+     
+# This class is solely made to perform Admin task only     
 class AdminAction:
     """
     This class is responsible for perform Database tasks
@@ -162,7 +303,7 @@ class AdminAction:
                 logging.info("Vehicle pricing table has been created")
             try:
                 cursor.execute(insert_price_query(), (vehicle_name, vehicle_code, price_per_km,))
-                logging.info("price data inserted")
+                logging.info("Vehicle fiar price inserted")
             except Exception as er:
                 logging.error(er)
             connection.commit()

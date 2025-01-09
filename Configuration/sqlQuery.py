@@ -1,9 +1,13 @@
-from Configuration.config import *
+from configuration.config import *
 from Database.LoginVerifier import *
 
-SIGNUP_TABLE = "user_credential"
+# Table name for Database
+SIGNUP_TABLE = "auth_details"
 VEHICLE_PRICING = "vehicle_pricing"
+CAB_BOOKING_TABLE = "ride_booking"
+#
 
+# Create table for user credentials
 def signup_create_query() -> str:
     query = f"""
             CREATE TABLE {SIGNUP_TABLE} (
@@ -20,12 +24,54 @@ def signup_create_query() -> str:
             """
     return query
 
+# Insert query for user credential
 def signup_insert_query() -> str:
     query =  f"""
-        INSERT INTO {SIGNUP_TABLE} (date_time, email, first_name, last_name, number, password, verify, user_role)
+        INSERT INTO {SIGNUP_TABLE} 
+        (date_time, email, first_name, last_name, number, password, verify, user_role)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
     return query
+
+
+# Create query for cab booking table with foreign key
+def booking_create_query()-> str:
+    query = f"""
+            CREATE TABLE {CAB_BOOKING_TABLE} (
+            id SERIAL PRIMARY KEY,
+            date VARCHAR,
+            time VARCHAR,
+            auth_id INT REFERENCES {SIGNUP_TABLE}(id) ON DELETE CASCADE,
+            pickup_address VARCHAR,
+            drop_address VARCHAR,
+            distance VARCHAR,
+            pickup_coordinates  DOUBLE PRECISION[],
+            drop_coordinates  DOUBLE PRECISION[],
+            vehicle_code VARCHAR,
+            ride_fair float,
+            payment_status BOOL
+            );
+            """
+    return query
+
+# Insert query for cab booking table 
+def booking_insert_query()-> str:
+    query = f"""
+            INSERT INTO {CAB_BOOKING_TABLE} (
+            date,
+            time,
+            auth_id,
+            pickup_address,
+            drop_address,
+            distance,
+            pickup_coordinates,
+            drop_coordinates,
+            vehicle_code,
+            ride_fair,
+            payment_status
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        """
+    return query 
 
 # This function is resposible for returning a query to check the table exists or not
 def is_table_exist_query(table_name: str) -> str:
@@ -159,6 +205,22 @@ def get_first_name(email: str) -> str:
     except Exception as error:
         logging.error(f"{error}")
         return None
+    
+def get_auth_id(user_email: str)-> int|bool:
+    query = f"""
+    SELECT id FROM {SIGNUP_TABLE} WHERE email = %s
+    """    
+    try:
+        connection = db_connection()
+        cursor = connection.cursor()
+        cursor.execute(query, (user_email,))
+        result = cursor.fetchone()
+        if not result:
+            return None
+        return result[0]
+    except Exception as err:
+        logging.error(err)
+        return False
         
 # Updating password corresponding
 def update_password_sql(new_password: str, email: str) -> bool:
@@ -231,3 +293,33 @@ def insert_price_query()-> str:
             VALUES (%s, %s, %s);
             """
     return query      
+
+def fetch_price_query()-> str:
+    query = f"""
+            SELECT vehicle_name, code, price_per_km FROM {VEHICLE_PRICING}
+            """
+    return query        
+
+
+def get_price_query()-> str:
+    query = f"""
+            SELECT price_per_km FROM 
+            {VEHICLE_PRICING} 
+            WHERE code = %s
+            """
+    return query        
+
+
+def ride_history_query()-> str:
+    query = f"""
+            select date, time, pickup_address, drop_address,
+            distance, vehicle_code, ride_fair, payment_status 
+            FROM {CAB_BOOKING_TABLE} where auth_id = %s
+            """
+    return query   
+
+def get_vehicle_name()-> str:
+    query = f"""
+            SELECT vehicle_name FROM {VEHICLE_PRICING} WHERE code = %s
+            """     
+    return query        

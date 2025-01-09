@@ -1,7 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from Emails.MailLayouts import *
-from Configuration.config import *
+from configuration.config import *
 
 # This function is responsible for sending signup verification to users via email
 def signup_verify_sender(user_email: str, first_name: str, token_url: str) -> bool:

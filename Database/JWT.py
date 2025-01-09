@@ -4,7 +4,7 @@ This Module handle entire `JWT` operations.
 
 import jwt  
 from datetime import datetime, timedelta, timezone
-from Configuration.config import *
+from configuration.config import *
 
 
 class JwtEncoder:
@@ -57,14 +57,13 @@ class JwtDecoder:
     This class contains all types of `JWT` decoding operations.
     """        
     # This function will decode any JWT token and return actual JSON data.
-    def decode_jwt(token: str) -> tuple[bool, dict]:
+    def decode_jwt(token: str) -> tuple[bool, dict|str]:
         """
         This function will decode all `JWT` and return actual JSON.
         
         Args
         ----
             (str) : Takes actual JWT for decoding.
-        
         Returns
         -------
             (dict) | (bool) : If Signature or token is Valid then dict, otherwise bool.

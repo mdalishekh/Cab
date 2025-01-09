@@ -15,3 +15,12 @@ UPDATE_PASSWORD_API_URL = "/api/v1/gocab/auth/change-password"
 
 #  6. Url for price insertion API (Admin access only)
 PRICE_INSERTION_API_URL = "/api/v1/gocab/admin/pricing/price-insert"
+
+# 7. Url for get fair price API
+FAIR_PRICE_API_URL = "/api/v1/gocab/fair-price"
+
+# 8. Url for Cab booking API
+CAB_BOOKING_API_URL = "/api/v1/gocab/booking/book-ride"
+
+# 9. Url for Ride history API
+RIDE_HISTORY_API_URL =  "/api/v1/gocab/booking/ride-history"
