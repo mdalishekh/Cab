@@ -3,7 +3,8 @@
     any specific access or not
 """
 
-from configuration.config import *
+from Configuration.config import *
+from Configuration.sqlQuery import *
 from Database.DatabaseHandler import *
 
 class AuthSecurityFilter:

@@ -1,6 +1,6 @@
 # This module is specially made for verify OTP and verify if the user is Logged in or not
-from configuration.config import *
-from configuration.sqlQuery import *
+from Configuration.config import *
+from Configuration.sqlQuery import *
 import bcrypt
 
 

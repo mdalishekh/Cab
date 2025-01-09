@@ -1,4 +1,4 @@
-from configuration.config import *
+from Configuration.config import *
 from Database.LoginVerifier import *
 
 # Table name for Database

@@ -1,7 +1,7 @@
 # This module is specially made for performing database related tasks
 # Importing some useful Packages to be used in database related tasks
-from configuration.config import *
-from configuration.sqlQuery import *
+from Configuration.config import *
+from Configuration.sqlQuery import *
 from Database.JWT import *
 from Database.LoginVerifier import *
 from collections import defaultdict
