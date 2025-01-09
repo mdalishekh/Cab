@@ -1,13 +1,10 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from configuration.config import *
 import time
 
 # This will print a log in server side 
 def cron_job():
-    logging.info("---------------------------------------------------------")
-    logging.info(f"KEEPING SERVER ACTIVE IN EVERY MINUTE {datetime.now().strftime('%Y-%m-%d at %H-%M-%S')}")
-    logging.info("---------------------------------------------------------")
+    print("KEEPING SERVER ACTIVE")
 
 # This function in controlling Crin expression
 def cron_scheduler():
