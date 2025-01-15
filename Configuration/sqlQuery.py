@@ -104,7 +104,7 @@ def is_table_exist(table_name: str) -> bool:
 def set_verify_true(email: str) -> bool:
     try:
         query = f"""
-                Update user_credential
+                Update {SIGNUP_TABLE}
                 set verify = True where email = %s
                 """    
         connection = db_connection()
