@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV File Upload</title>
+    <link rel="stylesheet" href="static/upload.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Upload CSV File</h2>
+        <input type="file" id="csvFile" accept=".csv">
+        <button class="upload-btn" onclick="uploadFile()">Upload</button>
+        <p id="message"></p>
+
+        <div id="table-container">
+            <h3>Uploaded CSV Data:</h3>
+            <table id="csvTable">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="static/app.js"></script>
+</body>
+</html>
