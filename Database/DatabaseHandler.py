@@ -82,7 +82,7 @@ class DatabaseHandler:
 
         Returns
         -------
-            tuple[bool, str|None, str|None]: If password verified then return with JWT.
+            tuple(bool, str|None, str|None): If password verified then return with JWT.
         """
         
         try:
