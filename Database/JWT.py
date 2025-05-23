@@ -14,16 +14,22 @@ class JwtEncoder:
     # This function will encode any parameter with No expiration.
     def encode_no_expire(json_data: dict) -> str:
         """
-        This function will encode any Dictionary in `JWT` without any expiration.
-        
-        Args
-        ----
-            json_data (dict) : Takes JSON/dict parameter to encode.
-        
+        Encode a dictionary into a JWT token without expiration.
+
+        This function takes a dictionary (JSON data) as input and encodes it into a JWT token 
+        without setting any expiration time.
+
+        Parameters
+        ----------
+        json_data : dict
+            The dictionary or JSON data to encode into the JWT token.
+
         Returns
         -------
-            (str) : JWT token
+        str
+            The encoded JWT token as a string.
         """
+
         # Encoding json data into JWT
         token = jwt.encode(json_data, JWT_SECRET, ALGORITHM)
         return token
