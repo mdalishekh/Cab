@@ -13,16 +13,23 @@ class AuthSecurityFilter:
     
     # Checks if user have ADMIN access or not    
     def has_access(user_email: str, role: str)-> bool:
-        """This function checks if the user have ROLE access or not
+        """
+        Check if a user has ROLE access.
 
-        Args
-        ----
-            user_email (str): Provide user email to be verified
+        This function verifies whether the given user's email is associated with a specific ROLE 
+        (required permission level or access control) in the system.
+
+        Parameters
+        ----------
+        user_email : str
+            The email address of the user to be verified for ROLE access.
 
         Returns
         -------
-            bool: If user has ROLE then TRUE, else FALSE
+        bool
+            Returns True if the user has the specified ROLE access, otherwise False.
         """
+
         if not is_table_exist(SIGNUP_TABLE):
             return False
         if not is_user_exist(user_email):
