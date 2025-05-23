@@ -8,10 +8,10 @@ from Database.DatabaseHandler import *
 from Database.LoginVerifier import *
 from Database.JWT import *
 from Database.AuthConfig import *
-from Configuration.UiRoutes import *
+from Configuration.ui_routes import *
 from Configuration.config import *
 from Configuration.sqlQuery import *
-from Configuration.ApiRoutes import *
+from Configuration.api_routes import *
 
 
 # Initiating an instance for FastAPI 

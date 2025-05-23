@@ -6,6 +6,24 @@ import bcrypt
 
 # This function encrypt password
 def hash_password(plain_password: str) -> bytes:
+    """
+    Hash a plain text password using bcrypt algorithm.
+
+    This function takes a plain password string, applies bcrypt hashing with a secret key 
+    retrieved from environment variables, and returns the hashed password as a UTF-8 string.
+
+    Parameters
+    ----------
+    plain_password : str
+        The plain text password to be hashed.
+
+    Returns
+    -------
+    bytes or None
+        The bcrypt-hashed password as a UTF-8 encoded byte string if successful; 
+        returns None if an error occurs during hashing.
+    """
+
     try:
         BCRYPT_KEY = os.getenv("BCRYPT_KEY")
         byte_text = bcrypt.hashpw(plain_password.encode('utf-8'), BCRYPT_KEY.encode('utf-8'))
