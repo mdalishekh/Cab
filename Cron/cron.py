@@ -9,7 +9,7 @@ def cron_job():
     logging.info(f"KEEPING SERVER ACTIVE IN EVERY MINUTE {datetime.now().strftime('%Y-%m-%d at %H-%M-%S')}")
     logging.info("---------------------------------------------------------")
 
-# This function in controlling Crin expression
+# This function in controlling Cron expression
 def cron_scheduler():
     scheduler = BackgroundScheduler()
     trigger = CronTrigger(minute='*', hour='*', day='*', month='*', day_of_week='*')
