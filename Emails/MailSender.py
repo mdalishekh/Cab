@@ -35,7 +35,7 @@ def signup_verify_sender(user_email: str, first_name: str, token_url: str) -> bo
             server.sendmail(EMAIL_SENDER, user_email, msg.as_string())
         return True
     except Exception as error:
-        logging.error(f"error occurred while sending signup verification email to  {user_email} :  {error}")
+        logging.error(f"Error occurred while sending signup verification email to  {user_email} :  {error}")
         return False
     
     
