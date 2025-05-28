@@ -6,7 +6,7 @@ from Configuration.config import *
 # This function is responsible for sending signup verification to users via email
 def signup_verify_sender(user_email: str, first_name: str, token_url: str) -> bool:
     """
-    This function sends signup verification Email.
+    This function sends signup verification Email to users.
     
     Args
     ----
