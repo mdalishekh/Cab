@@ -27,7 +27,7 @@ class AuthSecurityFilter:
         Returns
         -------
         bool
-            Returns True if the user has the specified ROLE access, otherwise False.
+            returns True if the user has the specified ROLE access, otherwise False.
         """
 
         if not is_table_exist(SIGNUP_TABLE):
