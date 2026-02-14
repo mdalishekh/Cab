@@ -33,7 +33,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-# 7. ### set PORT as env key in environment variable and it's value should be  8000
+# 7. set PORT as env key in environment variable and it's value should be  8000
 
 # 8. Use this command to deployment
 ```bash
