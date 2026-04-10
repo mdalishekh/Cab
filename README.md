@@ -1,42 +1,51 @@
-# Project Setup Instructions
 
-# 1. Install VS Code
-Download and install Visual Studio Code from the official website:
-[https://code.visualstudio.com/download](https://code.visualstudio.com/download)
+# 🚕 GoCab — Rural Cab Booking System
 
-# 2. Install VS Code
-Follow the installation instructions for your operating system to install Visual Studio Code.
+GoCab is a cab booking web application designed for rural and semi-urban 
+areas where services like Ola, Uber, and Rapido are unavailable. 
+The goal is to bridge the transportation gap in underserved regions.
 
-# 3. Install Python Extension in VS Code
-Once VS Code is installed, open it and install the Python extension. You can do this by:
+---
 
-1. Opening the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of the window.
-2. Searching for "Python" in the search box.
-3. Clicking on the "Install" button for the Python extension by Microsoft.
+## 🚧 Project Status
+> **Under Development** — Backend complete, Frontend in progress.
 
-This extension provides rich support for the Python language, including features like IntelliSense, linting, and debugging.
+---
 
-# 4. Install Python Interpreter
-Download and install the Python interpreter from the official website:
-[https://www.python.org/downloads/](https://www.python.org/downloads/)
+## 💡 Problem Statement
+Millions of people in rural areas have no access to organized cab booking 
+services. GoCab aims to solve this by providing a simple, reliable, 
+and scalable cab booking platform for these regions.
 
-Make sure to add Python to your system's PATH during the installation process. This allows you to run Python from the command line or terminal.
+---
 
-# 5. Install Required Packages
-After cloning the project repository, navigate to the project directory and run the following command to install all the necessary packages:
+## ⚙️ Tech Stack
 
-```bash
-pip install -r requirements.txt
-```
-# 6. Run this application in VS code terminal using this command
-```bash
-uvicorn main:app --reload
-```
+| Layer | Technology |
+|---|---|
+| Backend | FastAPI |
+| Database | PostgreSQL |
+| Auth | JWT |
+| Deployment | Docker, Render |
 
-# 7. set PORT as env key in environment variable and it's value should be  8000
+---
 
-# 8. Use this command to deployment
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
-Now this project will be started
+## 🔑 Features
+- User Signup & Login (JWT Authentication)
+- Cab Booking System
+- Account Management
+- RESTful API Architecture
+- Scalable Database Design
+
+---
+
+## 🏗️ Backend Architecture
+- Designed and implemented scalable REST APIs using FastAPI
+- Modeled and integrated PostgreSQL database for efficient data management
+- Managed production deployment via Docker and Render
+- Independently handled backend planning, coding, testing, and deployment
+
+## 👨‍💻 Developer
+**Md Ali Shekh** — Backend Developer
+[GitHub](https://github.com/mdalishekh) 
+[LinkedIn](https://linkedin.com/in/mdalishekh)
