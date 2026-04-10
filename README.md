@@ -13,7 +13,7 @@ The goal is to bridge the transportation gap in underserved regions.
 ---
 
 ## 💡 Problem Statement
-Millions of people in rural areas have no access to organized cab booking 
+Thousands of people in rural areas have no access to organized cab booking 
 services. GoCab aims to solve this by providing a simple, reliable, 
 and scalable cab booking platform for these regions.
 
